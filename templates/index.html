@@ -481,13 +481,16 @@
 
 <!-- HERO -->
 <div class="hero">
-  <h1>IC to A4 PDF Converter</h1>
-  <p>Upload your Malaysian IC scans and get a print-ready A4 PDF with front &amp; back automatically arranged.</p>
+  <h1>Convert Your IC to A4 PDF — Instantly</h1>
+  <p>Upload a photo or scan of your MyKad and get a properly sized, print-ready A4 PDF in seconds. Front &amp; back auto-arranged. No signup required.</p>
   <div class="hero-chips">
-    <span class="hero-chip">Auto-detect front &amp; back</span>
-    <span class="hero-chip">Auto-correct orientation</span>
-    <span class="hero-chip">Remove background</span>
-    <span class="hero-chip">ISO ID-1 · 85.6 × 53.98 mm</span>
+    <span class="hero-chip">✓ Free &amp; instant</span>
+    <span class="hero-chip">✓ Auto front &amp; back detection</span>
+    <span class="hero-chip">✓ Nothing stored on server</span>
+    <span class="hero-chip">✓ ISO ID-1 · 85.6 × 53.98 mm</span>
+  </div>
+  <div style="margin-top:18px;font-size:0.8rem;opacity:0.7;letter-spacing:0.2px;">
+    ↓ &nbsp;Upload your IC below to get started
   </div>
 </div>
 
@@ -803,7 +806,9 @@
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
-      a.href = url; a.download = 'ic_a4_output.pdf'; a.click();
+      const d = new Date();
+      const stamp = d.getFullYear() + ('0'+(d.getMonth()+1)).slice(-2) + ('0'+d.getDate()).slice(-2);
+      a.href = url; a.download = `MyKad_PrintReady_${stamp}.pdf`; a.click();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
       successBanner.classList.add('show');
       setTimeout(reset, 3000);
