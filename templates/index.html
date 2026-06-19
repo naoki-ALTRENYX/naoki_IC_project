@@ -136,7 +136,9 @@
       border-right: 1px solid var(--gray-200);
       display: flex;
       flex-direction: column;
+      transition: width 0.3s;
     }
+    .left-panel.solo { width: 100%; border-right: none; }
 
     .panel-head {
       padding: 18px 22px 14px;
@@ -502,7 +504,7 @@
     <div class="tool-body">
 
       <!-- LEFT: Upload -->
-      <div class="left-panel">
+      <div class="left-panel solo" id="leftPanel">
         <div class="panel-head">
           <div class="panel-step">1</div>
           <div>
@@ -546,7 +548,7 @@
       </div>
 
       <!-- RIGHT: Preview -->
-      <div class="right-panel">
+      <div class="right-panel" id="rightPanel" style="display:none">
         <div class="panel-head right">
           <div class="panel-step" id="step2Badge" style="opacity:0;transition:opacity 0.3s,background 0.3s;background:var(--blue)">2</div>
           <div>
@@ -712,6 +714,8 @@
       hintBar.classList.add('show');
       convertBtn.disabled = false;
       document.getElementById('step2Badge').style.opacity = '1';
+      document.getElementById('rightPanel').style.display = 'flex';
+      document.getElementById('leftPanel').classList.remove('solo');
     } catch (err) {
       showError(err.message);
     } finally {
@@ -840,6 +844,8 @@
     hintBar.classList.remove('show');
     convertBtn.disabled = true;
     document.getElementById('step2Badge').style.opacity = '0';
+    document.getElementById('rightPanel').style.display = 'none';
+    document.getElementById('leftPanel').classList.add('solo');
     convertBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Convert to A4 PDF`;
   }
 
