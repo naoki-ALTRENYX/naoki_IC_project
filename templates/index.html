@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IC → A4 Converter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      color: #111;
+    }
+
+    /* ---- outer card ---- */
+    .app-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 960px;
+      overflow: hidden;
+    }
+
+    /* ---- header ---- */
+    .app-header {
+      padding: 22px 32px 18px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+    .app-header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.3px; }
+    .app-header p  { font-size: 0.78rem; color: #9ca3af; }
+
+    /* ---- two-column body ---- */
+    .app-body {
+      display: flex;
+      min-height: 480px;
+    }
+
+    /* ---- LEFT panel ---- */
+    .left-panel {
+      width: 340px;
+      flex-shrink: 0;
+      padding: 24px;
+      border-right: 1px solid #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #9ca3af;
+      margin-bottom: 2px;
+    }
+
+    /* Drop zone */
+    .dropzone {
+      border: 2px dashed #d1d5db;
+      border-radius: 12px;
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s;
+      user-select: none;
+    }
+    .dropzone:hover, .dropzone.dragover { border-color: #1a56db; background: #f0f5ff; }
+    .dropzone.disabled { pointer-events: none; opacity: 0.5; }
+    .dropzone svg { display: block; margin: 0 auto 12px; color: #9ca3af; }
+    .dropzone .dz-title { font-size: 0.85rem; font-weight: 500; color: #374151; line-height: 1.5; }
+    .dropzone .dz-title span { color: #1a56db; text-decoration: underline; cursor: pointer; }
+    .dropzone .dz-sub { font-size: 0.7rem; color: #9ca3af; margin-top: 5px; }
+
+    #fileInput { display: none; }
+
+    /* File pills */
+    #fileList { display: flex; flex-direction: column; gap: 6px; }
+    .file-list-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 2px;
+    }
+    .file-list-title { font-size: 0.7rem; color: #9ca3af; }
+    .clear-all-btn {
+      font-size: 0.68rem; color: #ef4444; background: none; border: none;
+      cursor: pointer; padding: 0; font-family: 'Inter', sans-serif;
+      text-decoration: underline;
+    }
+    .clear-all-btn:hover { color: #b91c1c; }
+    .pill {
+      display: flex; align-items: center; gap: 8px;
+      background: #f0f5ff; border: 1px solid #c7d7fc; border-radius: 8px;
+      padding: 7px 8px 7px 12px; font-size: 0.75rem; color: #1e40af;
+    }
+    .pill span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pill-remove {
+      flex-shrink: 0; width: 22px; height: 22px; border-radius: 6px;
+      background: #fef2f2; border: 1px solid #fecaca;
+      cursor: pointer; color: #ef4444; font-size: 0.75rem; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .pill-remove:hover { background: #ef4444; border-color: #ef4444; color: #fff; }
+
+    /* BG removal toggle */
+    .toggle-row {
+      display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+      padding: 10px 12px; border-radius: 10px; border: 1px solid #e5e7eb;
+      background: #fafafa; user-select: none;
+    }
+    .toggle-row:hover { border-color: #c7d7fc; background: #f0f5ff; }
+    .toggle-wrap { position: relative; flex-shrink: 0; width: 36px; height: 20px; margin-top: 2px; }
+    .toggle-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider {
+      position: absolute; inset: 0; background: #d1d5db; border-radius: 999px;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; top: 3px; left: 3px; transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle-wrap input:checked + .toggle-slider { background: #1a56db; }
+    .toggle-wrap input:checked + .toggle-slider::before { transform: translateX(16px); }
+    .toggle-text { flex: 1; min-width: 0; }
+    .toggle-title { display: block; font-size: 0.8rem; font-weight: 500; color: #374151; }
+    .toggle-desc  { display: block; font-size: 0.7rem; color: #9ca3af; margin-top: 2px; line-height: 1.4; }
+
+    /* scan hint in left panel */
+    .scan-hint {
+      display: none;
+      font-size: 0.78rem;
+      color: #9ca3af;
+      align-items: center;
+      gap: 8px;
+    }
+    .scan-hint.show { display: flex; }
+
+    /* ---- RIGHT panel ---- */
+    .right-panel {
+      flex: 1;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    /* empty state */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #d1d5db;
+      gap: 10px;
+      text-align: center;
+    }
+    .empty-state svg { opacity: 0.4; }
+    .empty-state p { font-size: 0.82rem; }
+
+    /* card list */
+    #cardList { display: flex; flex-direction: column; gap: 10px; }
+
+    .card-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      background: #fafafa;
+      position: relative;
+    }
+
+    /* thumbnail column */
+    .card-thumb-col {
+      width: 200px;
+      flex-shrink: 0;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      min-height: 130px;
+    }
+    .card-thumb {
+      max-width: 188px;
+      max-height: 118px;
+      display: block;
+      border-radius: 4px;
+      transition: transform 0.25s ease;
+    }
+
+    /* info + controls column */
+    .card-info-col {
+      flex: 1;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+    }
+
+    .card-meta { margin-bottom: 10px; }
+
+    .card-badge {
+      display: inline-block;
+      font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px;
+      padding: 3px 10px; border-radius: 999px; text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .card-badge.front { background: #dbeafe; color: #1d4ed8; }
+    .card-badge.back  { background: #f3f4f6; color: #6b7280; }
+
+    .card-delete-btn {
+      position: absolute; top: 10px; right: 10px;
+      width: 26px; height: 26px; border-radius: 6px;
+      border: 1px solid #fecaca; background: #fef2f2; cursor: pointer;
+      font-size: 0.8rem; color: #ef4444;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .card-delete-btn:hover { background: #ef4444; border-color: #ef4444; color: #fff; }
+
+    .card-pos-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #111;
+      margin-bottom: 2px;
+    }
+    .card-pos-hint {
+      font-size: 0.72rem;
+      color: #9ca3af;
+      line-height: 1.4;
+    }
+
+    /* controls */
+    .card-controls {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .ctrl-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .ctrl-group-btns { display: flex; gap: 4px; }
+    .ctrl-label { font-size: 0.6rem; color: #b0b0b0; letter-spacing: 0.3px; text-transform: uppercase; }
+
+    .ctrl-btn {
+      width: 30px; height: 30px; border-radius: 7px;
+      border: 1px solid #e5e7eb; background: #fff; cursor: pointer;
+      font-size: 0.9rem; display: flex; align-items: center; justify-content: center;
+      color: #374151; transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .ctrl-btn:hover { background: #eff6ff; border-color: #1a56db; color: #1a56db; }
+    .ctrl-btn:disabled { opacity: 0.25; cursor: default; pointer-events: none; }
+
+    .ctrl-sep { width: 1px; background: #e5e7eb; align-self: stretch; margin: 0 2px; }
+
+    /* ---- bottom bar (right panel) ---- */
+    .right-bottom {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .preview-hint-bar {
+      font-size: 0.74rem;
+      color: #9ca3af;
+      line-height: 1.6;
+      padding: 10px 14px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #f0f0f0;
+      display: none;
+    }
+    .preview-hint-bar strong { color: #374151; }
+    .preview-hint-bar.show { display: block; }
+
+    #convertBtn {
+      width: 100%; padding: 12px;
+      font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600;
+      border: none; border-radius: 10px; cursor: pointer;
+      background: #1a56db; color: #fff;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: background 0.16s;
+    }
+    #convertBtn:hover:not(:disabled) { background: #1447c0; }
+    #convertBtn:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .banner {
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 0.82rem; font-weight: 500; display: none;
+      align-items: flex-start; gap: 8px; line-height: 1.5;
+    }
+    .banner.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .banner.error   { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+    .banner.show    { display: flex; }
+    .banner-icon    { flex-shrink: 0; }
+
+    /* ---- footer ---- */
+    footer {
+      margin-top: 16px; font-size: 0.68rem; color: #c0c0c0;
+      text-align: center; letter-spacing: 0.3px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-card">
+
+  <!-- header -->
+  <div class="app-header">
+    <h1>IC → A4 Converter</h1>
+    <p>MyKad &bull; ISO ID-1 &bull; 85.6 &times; 53.98 mm &bull; 300 DPI</p>
+  </div>
+
+  <!-- body -->
+  <div class="app-body">
+
+    <!-- LEFT: upload -->
+    <div class="left-panel">
+      <div class="panel-label">Step 1 — Upload IC files</div>
+
+      <div class="dropzone" id="dropzone">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 16 12 12 8 16"></polyline>
+          <line x1="12" y1="12" x2="12" y2="21"></line>
+          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+        </svg>
+        <div class="dz-title">Drag &amp; drop here<br/>or <span id="browseLink">click to browse</span></div>
+        <div class="dz-sub">PDF, JPG, PNG — multiple files OK</div>
+      </div>
+      <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple />
+
+      <div id="fileList"></div>
+
+      <label class="toggle-row" id="bgToggleRow">
+        <div class="toggle-wrap">
+          <input type="checkbox" id="removeBgChk" />
+          <span class="toggle-slider"></span>
+        </div>
+        <div class="toggle-text">
+          <span class="toggle-title">Remove Background</span>
+          <span class="toggle-desc">Erases the background before card detection. Useful when IC is on a coloured or patterned surface.</span>
+        </div>
+      </label>
+
+      <div class="scan-hint" id="scanHint">
+        <div class="spinner" style="border-color:rgba(0,0,0,0.1);border-top-color:#1a56db;width:14px;height:14px;border-width:2px;"></div>
+        <span>Detecting cards&hellip;</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: preview + edit -->
+    <div class="right-panel">
+      <div class="panel-label">Step 2 — Review &amp; Edit Cards</div>
+
+      <!-- empty state -->
+      <div class="empty-state" id="emptyState">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+          <path d="M16 3h-8l-2 4h12z"></path>
+        </svg>
+        <p>Upload IC files on the left.<br/>Detected cards will appear here for review.</p>
+      </div>
+
+      <!-- card list -->
+      <div id="cardList"></div>
+
+      <!-- bottom bar -->
+      <div class="right-bottom">
+        <div class="preview-hint-bar" id="hintBar">
+          <strong>Print order:</strong> 1st card = top of A4 &nbsp;·&nbsp; 2nd card = bottom of A4.<br/>
+          Use <strong>↺ ↻</strong> to fix rotation &nbsp;·&nbsp; Use <strong>↑ ↓</strong> to swap front &amp; back.
+        </div>
+        <button id="convertBtn" disabled>Convert to A4 PDF</button>
+        <div class="banner success" id="successBanner">
+          <span class="banner-icon">✓</span>
+          <span>Done! Your PDF is downloading&hellip;</span>
+        </div>
+        <div class="banner error" id="errorBanner">
+          <span class="banner-icon">✕</span>
+          <span id="errorMsg"></span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end app-body -->
+</div><!-- end app-card -->
+
+<footer>Print at 100% Actual Size &middot; Do not scale to fit</footer>
+
+<script>
+  const dropzone       = document.getElementById('dropzone');
+  const fileInput      = document.getElementById('fileInput');
+  const browseLink     = document.getElementById('browseLink');
+  const fileList       = document.getElementById('fileList');
+  const scanHint       = document.getElementById('scanHint');
+  const removeBgChk    = document.getElementById('removeBgChk');
+  const emptyState     = document.getElementById('emptyState');
+  const cardList       = document.getElementById('cardList');
+  const hintBar        = document.getElementById('hintBar');
+  const convertBtn     = document.getElementById('convertBtn');
+  const successBanner  = document.getElementById('successBanner');
+  const errorBanner    = document.getElementById('errorBanner');
+  const errorMsg       = document.getElementById('errorMsg');
+
+  let selectedFiles = [];
+  let sessionId     = null;
+  let cards         = [];
+
+  /* ---- file selection ---- */
+  browseLink.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value = ''; });
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault(); dropzone.classList.remove('dragover'); addFiles(e.dataTransfer.files);
+  });
+
+  function addFiles(newFiles) {
+    for (const f of newFiles) {
+      const ext = f.name.split('.').pop().toLowerCase();
+      if (!['pdf','jpg','jpeg','png'].includes(ext)) continue;
+      if (!selectedFiles.find(x => x.name === f.name && x.size === f.size))
+        selectedFiles.push(f);
+    }
+    renderPills();
+    hideBanners();
+    if (selectedFiles.length) loadPreview(); else resetPreview();
+  }
+
+  function renderPills() {
+    fileList.innerHTML = '';
+    if (!selectedFiles.length) return;
+    const header = document.createElement('div');
+    header.className = 'file-list-header';
+    header.innerHTML = `<span class="file-list-title">${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected</span><button class="clear-all-btn" id="clearAllBtn">Clear all</button>`;
+    fileList.appendChild(header);
+    selectedFiles.forEach((f, i) => {
+      const pill = document.createElement('div');
+      pill.className = 'pill';
+      pill.innerHTML = `<span title="${f.name}">${f.name}</span><button class="pill-remove" data-idx="${i}" title="Remove this file">✕</button>`;
+      fileList.appendChild(pill);
+    });
+  }
+
+  fileList.addEventListener('click', e => {
+    if (e.target.id === 'clearAllBtn') {
+      selectedFiles = [];
+      renderPills();
+      resetPreview();
+      return;
+    }
+    const btn = e.target.closest('button[data-idx]');
+    if (!btn) return;
+    selectedFiles.splice(parseInt(btn.dataset.idx), 1);
+    renderPills();
+    if (selectedFiles.length) loadPreview(); else resetPreview();
+  });
+
+  /* ---- preview fetch ---- */
+  async function loadPreview() {
+    resetPreview();
+    scanHint.querySelector('span').textContent = removeBgChk.checked
+      ? 'Removing background & detecting cards…'
+      : 'Detecting cards…';
+    scanHint.classList.add('show');
+    dropzone.classList.add('disabled');
+
+    const fd = new FormData();
+    selectedFiles.forEach(f => fd.append('files', f));
+    fd.append('remove_bg', removeBgChk.checked);
+
+    try {
+      const res = await fetch('/preview', { method: 'POST', body: fd });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.detail || 'Detection failed.');
+      }
+      const data = await res.json();
+      sessionId = data.session_id;
+      cards = data.cards.map(c => ({ ...c, rotation: 0 }));
+      renderCards();
+      emptyState.style.display = 'none';
+      hintBar.classList.add('show');
+      convertBtn.disabled = false;
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      scanHint.classList.remove('show');
+      dropzone.classList.remove('disabled');
+    }
+  }
+
+  /* ---- render card list ---- */
+  function thumbTransform(rot) {
+    const r = ((rot % 360) + 360) % 360;
+    return (r === 90 || r === 270) ? `rotate(${r}deg) scale(0.6)` : `rotate(${r}deg)`;
+  }
+
+  function renderCards() {
+    cardList.innerHTML = '';
+    cards.forEach((c, idx) => {
+      const isFirst = idx === 0;
+      const badgeCls   = isFirst ? 'front' : 'back';
+      const badgeTxt   = isFirst ? 'Front' : 'Back';
+      const posTitle   = isFirst ? 'Prints on TOP of A4' : 'Prints on BOTTOM of A4';
+      const posHint    = isFirst
+        ? 'This is the top card on the printed page.'
+        : 'This is the bottom card on the printed page.';
+
+      const item = document.createElement('div');
+      item.className = 'card-item';
+      item.innerHTML = `
+        <button class="card-delete-btn" title="Remove this card" onclick="deleteCard(${idx})">✕</button>
+        <div class="card-thumb-col">
+          <img class="card-thumb"
+               src="data:image/jpeg;base64,${c.image}"
+               style="transform:${thumbTransform(c.rotation)}" />
+        </div>
+        <div class="card-info-col">
+          <div class="card-meta">
+            <span class="card-badge ${badgeCls}">${badgeTxt}</span>
+            <div class="card-pos-title">${posTitle}</div>
+            <div class="card-pos-hint">${posHint}</div>
+          </div>
+          <div class="card-controls">
+            <div class="ctrl-group">
+              <div class="ctrl-group-btns">
+                <button class="ctrl-btn" title="Rotate Left"  onclick="rotate(${idx},-90)">↺</button>
+                <button class="ctrl-btn" title="Rotate Right" onclick="rotate(${idx}, 90)">↻</button>
+              </div>
+              <div class="ctrl-label">Rotate</div>
+            </div>
+            <div class="ctrl-sep"></div>
+            <div class="ctrl-group">
+              <div class="ctrl-group-btns">
+                <button class="ctrl-btn" title="Move Up"   onclick="move(${idx},-1)" ${idx === 0 ? 'disabled' : ''}>↑</button>
+                <button class="ctrl-btn" title="Move Down" onclick="move(${idx}, 1)" ${idx === cards.length-1 ? 'disabled' : ''}>↓</button>
+              </div>
+              <div class="ctrl-label">Reorder</div>
+            </div>
+          </div>
+        </div>
+      `;
+      cardList.appendChild(item);
+    });
+  }
+
+  function rotate(idx, deg) {
+    cards[idx].rotation = (cards[idx].rotation + deg + 360) % 360;
+    renderCards();
+  }
+
+  function move(idx, dir) {
+    const ni = idx + dir;
+    if (ni < 0 || ni >= cards.length) return;
+    [cards[idx], cards[ni]] = [cards[ni], cards[idx]];
+    renderCards();
+  }
+
+  function deleteCard(idx) {
+    cards.splice(idx, 1);
+    if (cards.length === 0) {
+      resetPreview();
+    } else {
+      renderCards();
+    }
+  }
+
+  /* ---- convert ---- */
+  convertBtn.addEventListener('click', async () => {
+    if (!sessionId || !cards.length) return;
+    hideBanners();
+    setConverting(true);
+
+    try {
+      const res = await fetch('/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          order: cards.map(c => ({ id: c.id, rotation: c.rotation }))
+        })
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.detail || 'Conversion failed.');
+      }
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url; a.download = 'ic_a4_output.pdf'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      successBanner.classList.add('show');
+      setTimeout(reset, 3000);
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      setConverting(false);
+    }
+  });
+
+  /* ---- helpers ---- */
+  function setConverting(on) {
+    convertBtn.disabled = on || !sessionId;
+    convertBtn.innerHTML = on
+      ? '<div class="spinner"></div>Processing&hellip;'
+      : 'Convert to A4 PDF';
+  }
+
+  function hideBanners() {
+    successBanner.classList.remove('show');
+    errorBanner.classList.remove('show');
+  }
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorBanner.classList.add('show');
+  }
+
+  function resetPreview() {
+    sessionId = null; cards = [];
+    cardList.innerHTML = '';
+    emptyState.style.display = '';
+    hintBar.classList.remove('show');
+    convertBtn.disabled = true;
+    convertBtn.innerHTML = 'Convert to A4 PDF';
+  }
+
+  function reset() {
+    selectedFiles = [];
+    fileList.innerHTML = '';
+    fileInput.value = '';
+    hideBanners();
+    resetPreview();
+  }
+</script>
+</body>
+</html>
