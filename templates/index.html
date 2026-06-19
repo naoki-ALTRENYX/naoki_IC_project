@@ -319,6 +319,18 @@
     .banner.show    { display: flex; }
     .banner-icon    { flex-shrink: 0; }
 
+    /* ---- privacy notice ---- */
+    .privacy-notice {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px;
+      padding: 10px 14px; margin: 0 24px 0;
+      font-size: 0.72rem; color: #166534; line-height: 1.5;
+    }
+    .privacy-notice svg { flex-shrink: 0; margin-top: 1px; }
+    @media (max-width: 640px) {
+      .privacy-notice { margin: 0 16px 0; }
+    }
+
     /* ---- footer ---- */
     footer {
       margin-top: 16px; font-size: 0.68rem; color: #c0c0c0;
@@ -450,11 +462,24 @@
     </div>
 
   </div><!-- end app-body -->
+
+  <!-- privacy notice -->
+  <div class="privacy-notice">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    <span>
+      <strong>Your privacy is protected.</strong> All uploaded files are processed entirely on our server and are never stored, shared, or logged.
+      Files and generated PDFs are deleted from memory immediately after download. We do not retain any personal data or document contents.
+    </span>
+  </div>
+
 </div><!-- end app-card -->
 
 <footer>
   Print at 100% Actual Size &middot; Do not scale to fit<br/>
-  &copy; 2026 Aydyn Naoki &mdash; All rights reserved &middot; Unauthorized reproduction of output documents is prohibited
+  &copy; 2026 Aydyn Naoki &mdash; All rights reserved &middot; For authorized personal use only
 </footer>
 
 <script>
