@@ -514,6 +514,17 @@
         </div>
         <div class="panel-body">
 
+          <label class="toggle-row" id="bgToggleRow">
+            <div class="toggle-wrap">
+              <input type="checkbox" id="removeBgChk" />
+              <span class="toggle-slider"></span>
+            </div>
+            <div class="toggle-text">
+              <span class="toggle-title">Remove Background</span>
+              <span class="toggle-desc">Turn this ON if your IC is on a coloured or patterned surface. Helps improve detection.</span>
+            </div>
+          </label>
+
           <div class="dropzone" id="dropzone">
             <div class="dropzone-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -527,17 +538,6 @@
           <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple />
 
           <div id="fileList"></div>
-
-          <label class="toggle-row" id="bgToggleRow">
-            <div class="toggle-wrap">
-              <input type="checkbox" id="removeBgChk" />
-              <span class="toggle-slider"></span>
-            </div>
-            <div class="toggle-text">
-              <span class="toggle-title">Remove Background</span>
-              <span class="toggle-desc">Erases background before detection. Useful when IC is on a coloured or patterned surface.</span>
-            </div>
-          </label>
 
           <div class="scan-hint" id="scanHint">
             <div class="spinner" style="border-color:rgba(37,99,235,0.2);border-top-color:var(--blue);width:14px;height:14px;border-width:2px;"></div>
